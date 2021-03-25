@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\VideosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +16,18 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::group(['prefix' => 'channel'], function () {
+    Route::get('/{id}', [ChannelController::class, 'index']);
+});
+Route::group(['prefix' => 'video'], function () {
+    Route::get('/comment/{id}', [VideosController::class, 'comment']);
+    Route::get('/{id}', [VideosController::class, 'index']);
+});
+Route::group(['prefix' => 'comment'], function () {
+    Route::get('/export', [CommentController::class, 'exportComment']);
+    
+    Route::get('/test', [CommentController::class, 'test']);
+});
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
