@@ -20,6 +20,7 @@ Route::group(['prefix' => 'channel'], function () {
     Route::get('/{id}', [ChannelController::class, 'index']);
 });
 Route::group(['prefix' => 'video'], function () {
+    Route::post('',[VideosController::class, 'create']);
     Route::get('/comment/{id}', [VideosController::class, 'comment']);
     Route::get('/{id}', [VideosController::class, 'index']);
 });

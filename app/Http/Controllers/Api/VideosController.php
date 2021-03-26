@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\VideosServices;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VideosController extends Controller
 {
@@ -32,10 +33,16 @@ class VideosController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
-    }
+        $json = $request->file('upload');
+        $data = file_get_contents($json->path());
+        $data = json_decode($data,false);
+        dd($data);
+        // DB::table('videos')->insertOrIgnore($data);
+
+        // return $data;
+    } 
 
     /**
      * Store a newly created resource in storage.

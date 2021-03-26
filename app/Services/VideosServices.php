@@ -5,12 +5,15 @@ namespace App\Services;
 use Alaouy\Youtube\Youtube;
 use Illuminate\Support\Facades\DB;
 
-class VideosServices {
+class VideosServices
+{
     protected $youtube;
-    public function __construct(Youtube $youtube) {
+    public function __construct(Youtube $youtube)
+    {
         $this->youtube = $youtube;
     }
 
+    
     public function getVideos($id)
     {
 
@@ -20,51 +23,54 @@ class VideosServices {
             'part'          => 'id, snippet',
             'maxResults'    => 50
         ];
-        
+
         $data = $this->youtube->paginateResults($params, null);
-     
+
         $results = $data['results'];
 
 
         $pageTokens = $data['info']['nextPageToken'];
         while ($pageTokens) {
             $data = $this->youtube->paginateResults($params, $pageTokens);
-                $nextResults =  $data['results'];
-             
-                $pageTokens = $data['info']['nextPageToken'];
+            $nextResults =  $data['results'];
 
-                if (is_array($nextResults)) {
-                    $results = array_merge($results, $nextResults);
-                
-                }
+            $pageTokens = $data['info']['nextPageToken'];
 
-               
-            
-         
+            if (is_array($nextResults)) {
+                $results = array_merge($results, $nextResults);
+            }
         }
-        dd($results);
 
+        $data = (collect($results))->map(function ($videos) use ($id) {
+            $data = $videos->snippet;
 
-        for($i=0; $i<count($videos); $i++){
-            $data = $videos[$i]->snippet;
-           
-        }
-   
-        // DB::table('videos')->insertOrIgnore($row);
+            return array(
+                'videoId' => $videos->id->videoId,
+                'channelId' => $id,
+                'title' => $data->title,
+                'description' => $data->description,
+                'liveBroadcastContent' => $data->liveBroadcastContent,
+                'publishedAt' => $data->publishedAt,
+                'lowImage' => $data->thumbnails->default->url,
+                'mediumImage' => $data->thumbnails->medium->url,
+                'highImage' => $data->thumbnails->high->url,
+            );
+        })->toArray();
+
+        DB::table('videos')->insertOrIgnore($data);
 
         // $videos = $this->youtube->searchAdvanced()
-        return $row;
+        return $data;
     }
 
     public function loopVideos()
     {
-        
     }
     public function getComments($id)
     {
 
-        $data = $this->youtube->getCommentThreadsByVideoId($id, 100,null,['snippet'],false);
-        for ($i=0; $i < count($data); $i++) { 
+        $data = $this->youtube->getCommentThreadsByVideoId($id, 100, null, ['snippet'], false);
+        for ($i = 0; $i < count($data); $i++) {
             $arr  = array(
                 'videoId' => $data[$i]->snippet->topLevelComment->snippet->videoId,
                 'textOriginal' => $data[$i]->snippet->topLevelComment->snippet->textOriginal,
@@ -77,12 +83,11 @@ class VideosServices {
                 'likeCount' => $data[$i]->snippet->topLevelComment->snippet->likeCount,
             );
             $videos[] = $arr;
-            
         }
-      
-            
+
+
         # code...     
-  
+
         // Add results key with info parameter set
         // print_r($search['results']);
 
@@ -100,16 +105,16 @@ class VideosServices {
         //         'highImage' => $data->thumbnails->high->url,
         //     );
         // }
-   
+
         DB::table('comment')->insertOrIgnore($videos);
         return $videos;
     }
 
     function checkVideos($search)
     {
-            // Check if we have a pageToken
-            if (isset($search['info']['nextPageToken'])) {
-                return $search['info']['nextPageToken'];
-            }
+        // Check if we have a pageToken
+        if (isset($search['info']['nextPageToken'])) {
+            return $search['info']['nextPageToken'];
+        }
     }
 }
