@@ -27,6 +27,6 @@ class Comment extends Model
 
     public function detailComment()
     {
-        return $this->hasMany(Video::class, 'videoId', 'videoId');
+        return $this->hasOne(Video::class, 'videoId', 'videoId');
     }
 }

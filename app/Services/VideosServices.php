@@ -13,26 +13,53 @@ class VideosServices {
 
     public function getVideos($id)
     {
-        $videos = $this->youtube->listChannelVideos($id, 200);
+
+        $params = [
+            'channelId' => $id,
+            'type'          => 'video',
+            'part'          => 'id, snippet',
+            'maxResults'    => 50
+        ];
+        
+        $data = $this->youtube->paginateResults($params, null);
+     
+        $results = $data['results'];
+
+
+        $pageTokens = $data['info']['nextPageToken'];
+        while ($pageTokens) {
+            $data = $this->youtube->paginateResults($params, $pageTokens);
+                $nextResults =  $data['results'];
+             
+                $pageTokens = $data['info']['nextPageToken'];
+
+                if (is_array($nextResults)) {
+                    $results = array_merge($results, $nextResults);
+                
+                }
+
+               
+            
+         
+        }
+        dd($results);
+
+
         for($i=0; $i<count($videos); $i++){
             $data = $videos[$i]->snippet;
-            $row[] = array(
-                'videoId' => $videos[$i]->id->videoId,
-                'channelId' => $id,
-                'title' => $data->title,
-                'description' => $data->description,
-                'liveBroadcastContent' => $data->liveBroadcastContent,
-                'publishedAt' => $data->publishedAt,
-                'lowImage' => $data->thumbnails->default->url,
-                'mediumImage' => $data->thumbnails->medium->url,
-                'highImage' => $data->thumbnails->high->url,
-            );
+           
         }
    
-        DB::table('videos')->insertOrIgnore($row);
+        // DB::table('videos')->insertOrIgnore($row);
+
+        // $videos = $this->youtube->searchAdvanced()
         return $row;
     }
 
+    public function loopVideos()
+    {
+        
+    }
     public function getComments($id)
     {
 
